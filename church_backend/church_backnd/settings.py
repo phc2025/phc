@@ -92,6 +92,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'church_backnd.wsgi.application'
+CORS_ALLOW_ALL_ORIGINS = True
 
 from dotenv import load_dotenv
 load_dotenv()
