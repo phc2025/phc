@@ -24,6 +24,7 @@ class helping_hand(models.Model):
         return self.name
 
 class donate(models.Model):
+    user = models.ForeignKey('user_register', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     email = models.EmailField()
     amount = models.CharField(max_length=100,blank=True, null=True)
@@ -41,4 +42,5 @@ class timings(models.Model):
     description = models.TextField()
     
     def __str__(self):
+
         return self.day
