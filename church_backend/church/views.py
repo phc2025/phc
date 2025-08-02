@@ -115,7 +115,10 @@ class DonateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, user_id=None):
-        donations = donate.objects.filter(id=user_id) if user_id else donate.objects.all()
+        if user_id:
+            donations = donate.objects.filter(user__id=user_id)
+        else:
+            donations = donate.objects.all()
         serializer = donateSerializer(donations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -131,6 +134,7 @@ class DonateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request):
         donate_id = request.data.get('id')
@@ -250,3 +254,4 @@ class TimingView(APIView):
         timing = get_object_or_404(timings, pk=pk)
         timing.delete()
         return Response({'message': 'Timing entry deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
