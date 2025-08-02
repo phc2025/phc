@@ -76,33 +76,46 @@ class user_loginView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
-
 class HelpingHandView(APIView):
-    def get(self, request, *args, **kwargs):
-        user_id = request.query_params.get('user_id')
+    def get(self, request, user_id=None):
+        print("Received user_id:", user_id)
         if user_id:
-            helping_data = HelpingHand.objects.filter(user__id=user_id)
+            helpings = helping_hand.objects.filter(user__id=user_id)
         else:
-            helping_data = HelpingHand.objects.all()
-        serializer = HelpingHandSerializer(helping_data, many=True)
+            helpings = helping_hand.objects.all()
+
+        serializer = helping_handSerializer(helpings, many=True)
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
-        serializer = HelpingHandSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        user_id = request.data.get('user')
+        image = request.FILES.get('image')
 
-    def delete(self, request, pk):
         try:
-            instance = HelpingHand.objects.get(id=pk)
-            instance.delete()
-            return Response({"message": "Deleted"}, status=status.HTTP_204_NO_CONTENT)
-        except HelpingHand.DoesNotExist:
-            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+            user = user_register.objects.get(id=user_id)
+        except user_register.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        helping = helping_hand.objects.create(
+            user=user,
+            name=user.name,
+            email=user.email,
+            phone=user.phone,
+            image=image
+        )
 
+        serializer = helping_handSerializer(helping)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        helping_id = request.data.get('id')
+        try:
+            helping = helping_hand.objects.get(id=helping_id)
+            helping.delete()
+            return Response({'message': 'Entry deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except helping_hand.DoesNotExist:
+            return Response({'message': 'Entry not found'}, status=status.HTTP_404_NOT_FOUND)
+            
 class DonateView(APIView):
     def post(self, request):
         serializer = donateSerializer(data=request.data)
@@ -378,4 +391,5 @@ class TimingView(APIView):
             {'message': 'Timing entry deleted successfully.'},
             status=status.HTTP_204_NO_CONTENT
         )
+
 
